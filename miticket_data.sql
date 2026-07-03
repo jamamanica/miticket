@@ -18,7 +18,9 @@ VALUES
 ('60124326','Musica, Deportes'),
 ('72357812','Conferencias, Talleres'),
 ('76770924','Festivales, Streaming'),
-('61345257','Musica, Danza'),
+('61345257','Musica, Danza');
+INSERT INTO organizador(dni_organizador,nombre_empresa,ruc)
+VALUES
 ('63215672','Dia D Eventos','20103455236'),
 ('62674561','ExperienZia','20123441407'),
 ('65320541','The Big Night','20063245238'),
