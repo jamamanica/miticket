@@ -20,6 +20,20 @@ CREATE TABLE cliente (
         ON UPDATE CASCADE
 );
 
+CREATE TABLE cliente_categoria (
+    dni_cliente CHAR(8) NOT NULL,
+    id_categoria INT NOT NULL,
+    PRIMARY KEY (dni_cliente, id_categoria), 
+    
+    CONSTRAINT fk_pref_cliente 
+        FOREIGN KEY (dni_cliente) REFERENCES cliente(dni_cliente) 
+        ON DELETE CASCADE ON UPDATE CASCADE,
+        
+    CONSTRAINT fk_pref_categoria 
+        FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria) 
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 CREATE TABLE organizador (
     dni_organizador CHAR(8) PRIMARY KEY,
     nombre_empresa VARCHAR(100) NOT NULL,
