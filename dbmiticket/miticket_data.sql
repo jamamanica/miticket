@@ -80,9 +80,10 @@ INSERT INTO evento (nombre, descripcion, fecha, hora, estado, dni_organizador, i
 ('Eva Ayllón y Amigos', 'Noche criolla espectacular.', '2026-07-28', '20:00:00', 'PUBLICADO', '99001122', 7, 7),
 ('El Lago de los Cisnes', 'Ballet clásico ruso.', '2026-12-15', '19:30:00', 'BORRADOR', '33445566', 3, 8),
 ('La Granja de Zenón', 'Show oficial en vivo para niños.', '2026-08-02', '15:00:00', 'PUBLICADO', '77889900', 9, 9),
-('Tech Conference Perú', 'Innovación y desarrollo tecnológico.', '2026-08-25', '09:00:00', 'CANCELADO', '12435687', 10, 10);
+('Tech Conference Perú', 'Innovación y desarrollo tecnológico.', '2026-08-25', '09:00:00', 'CANCELADO', '12435687', 10, 10),
+('Hablando Huevadas', 'Show de comedia en vivo improvisado.', '2026-09-05', '21:00:00', 'PUBLICADO', '98761234', 2, 4);
 
-INSERT INTO zona(nombre_zona,precio,stock,capacidad,id_evento) VALUES
+INSERT INTO zona (nombre_zona, precio, stock, capacidad, id_evento) VALUES
 ('Platinum', 380, 500, 500, 1),
 ('VIP', 250, 800, 800, 1),
 ('Occidente', 150, 1200, 1200, 1),
