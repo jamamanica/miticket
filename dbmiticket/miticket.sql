@@ -20,6 +20,12 @@ CREATE TABLE cliente (
         ON UPDATE CASCADE
 );
 
+CREATE TABLE categoria (
+    id_categoria INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_categoria VARCHAR(50) NOT NULL,
+    descripcion VARCHAR(200)
+);
+
 CREATE TABLE cliente_categoria (
     dni_cliente CHAR(8) NOT NULL,
     id_categoria INT NOT NULL,
@@ -51,12 +57,6 @@ CREATE TABLE lugar (
     direccion VARCHAR(200),
     ciudad VARCHAR(100),
     capacidad INT NOT NULL
-);
-
-CREATE TABLE categoria (
-    id_categoria INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_categoria VARCHAR(50) NOT NULL,
-    descripcion VARCHAR(200)
 );
 
 CREATE TABLE evento (
