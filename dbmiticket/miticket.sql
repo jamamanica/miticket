@@ -8,7 +8,7 @@ CREATE TABLE usuario (
     correo VARCHAR(100) NOT NULL UNIQUE,
     contrasena VARCHAR(255) NOT NULL,
     telefono VARCHAR(20),
-    fecha_registro DATE NOT NULL
+    fecha_nacimiento DATE NOT NULL
 );
 
 CREATE TABLE cliente (
