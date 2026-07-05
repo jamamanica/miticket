@@ -39,7 +39,7 @@ if ($action === 'login') {
     $correo = $_POST['correo'];
     $contrasena = $_POST['contrasena'];
 
-    $usuario = Usuario::initSesion($correo, $contrasena);
+    $usuario = Usuario::iniciarSesion($correo, $contrasena);
 
     if ($usuario) {
         $_SESSION['usuario_dni'] = $usuario['dni'];
