@@ -13,7 +13,6 @@ CREATE TABLE usuario (
 
 CREATE TABLE cliente (
     dni_cliente CHAR(8) PRIMARY KEY,
-    preferencias VARCHAR(255),	
     CONSTRAINT fk_cliente_usuario
         FOREIGN KEY (dni_cliente)
         REFERENCES usuario(dni)
