@@ -1,16 +1,22 @@
 <?php
+class Conexion {
+    private static $conexion = null;
 
-$host = "localhost";
-$usuario = "root";
-$password = "";
-$bd = "DBMITICKET";
+    public static function conectar() {
+        if (self::$conexion == null) {
+            $host = "localhost";
+            $usuario = "root";
+            $password = "";
+            $bd = "DBMITICKET";
 
-$conn = new mysqli($host, $usuario, $password, $bd);
+            self::$conexion = new mysqli($host, $usuario, $password, $bd);
 
-if ($conn->connect_error) {
-    die("Error de conexión: " . $conn->connect_error);
+            if (self::$conexion->connect_error) {
+                die("Error de conexión: " . self::$conexion->connect_error);
+            }
+            self::$conexion->set_charset("utf8");
+        }
+        return self::$conexion;
+    }
 }
-
-$conn->set_charset("utf8");
-
 ?>
