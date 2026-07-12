@@ -1,0 +1,117 @@
+* { box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    background: #f4f5f7;
+    color: #222;
+}
+.navbar {
+    background: #1a1a2e;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 30px;
+    flex-wrap: wrap;
+}
+.navbar .logo { color: #fff; font-weight: bold; font-size: 1.3em; text-decoration: none; }
+.navbar nav a { color: #eee; margin-left: 18px; text-decoration: none; }
+.navbar nav a:hover { color: #ffcb47; }
+.navbar .usuario { margin-left: 18px; color: #aaa; }
+
+.container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+
+.alert { padding: 12px 18px; border-radius: 6px; margin-bottom: 20px; }
+.alert-success { background: #d4edda; color: #155724; }
+.alert-error { background: #f8d7da; color: #721c24; }
+
+.form-card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    max-width: 420px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.form-card label { display: block; margin-top: 12px; font-weight: 600; font-size: 0.9em; }
+.form-card input, .form-card select {
+    width: 100%; padding: 9px; margin-top: 4px;
+    border: 1px solid #ccc; border-radius: 6px;
+}
+
+.btn {
+    display: inline-block;
+    background: #ffcb47;
+    color: #1a1a2e;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+    margin-top: 14px;
+}
+.btn:hover { background: #ffb703; }
+
+.filtros { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.filtros input, .filtros select { padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
+
+.grid-eventos { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+.card-evento {
+    background: #fff; padding: 18px; border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.categoria-tag {
+    display: inline-block; background: #e9ecef; color: #333;
+    padding: 3px 10px; border-radius: 12px; font-size: 0.8em;
+}
+
+.info-evento { background: #fff; padding: 16px; border-radius: 8px; margin: 16px 0; }
+
+.card-zona {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #fff; padding: 14px 18px; border-radius: 8px; margin-bottom: 10px;
+}
+.form-inline { display: flex; gap: 8px; align-items: center; }
+.form-inline input[type=number] { width: 70px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
+.agotado { color: #c0392b; font-weight: bold; }
+
+.tabla-carrito { width: 100%; border-collapse: collapse; background: #fff; }
+.tabla-carrito th, .tabla-carrito td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+
+.grid-tickets { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.ticket {
+    background: #fff; border: 2px dashed #ffcb47; border-radius: 10px; padding: 16px;
+}
+
+.card-compra { background: #fff; padding: 16px; border-radius: 8px; margin-bottom: 14px; }
+.estado-pagada { color: #155724; font-weight: bold; }
+.estado-pendiente { color: #856404; font-weight: bold; }
+.estado-cancelada { color: #721c24; font-weight: bold; }
+
+.footer { text-align: center; padding: 20px; color: #888; font-size: 0.85em; }
+
+.panel-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+
+.estado-tag { padding: 3px 10px; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+.estado-borrado, .estado-borrador { background: #fff3cd; color: #856404; }
+.estado-publicado { background: #d4edda; color: #155724; }
+.estado-cancelado { background: #f8d7da; color: #721c24; }
+
+.acciones-evento { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; font-size: 0.9em; }
+.acciones-evento a { text-decoration: none; color: #1a1a2e; font-weight: 600; }
+.acciones-evento a.link-danger { color: #c0392b; }
+
+.form-card-ancho { max-width: 600px; }
+.form-card textarea {
+    width: 100%; padding: 9px; margin-top: 4px;
+    border: 1px solid #ccc; border-radius: 6px; font-family: inherit;
+}
+.fila { display: flex; gap: 12px; }
+.fila > div { flex: 1; }
+
+.fieldset-lugar {
+    margin-top: 16px; border: 1px dashed #ccc; border-radius: 8px; padding: 12px;
+}
+.fieldset-lugar legend { font-weight: 600; font-size: 0.85em; padding: 0 6px; }
+
+.ayuda { font-size: 0.85em; color: #666; margin-top: 10px; }
