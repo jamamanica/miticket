@@ -21,29 +21,34 @@ class AuthController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $correo     = trim($_POST['correo'] ?? '');
             $contrasena = $_POST['contrasena'] ?? '';
+            $rolElegido = $_POST['rol'] ?? 'cliente'; // 'cliente' o 'organizador'
 
             $usuario = $this->usuarioModel->buscarPorCorreo($correo);
 
             if ($usuario && password_verify($contrasena, $usuario['contrasena'])) {
-                $esOrganizador = $this->organizadorModel->existe($usuario['dni']);
-                $esCliente     = $this->clienteModel->existe($usuario['dni']);
-
-                $_SESSION['usuario_dni']    = $usuario['dni'];
-                $_SESSION['usuario_nombre'] = $usuario['nombre'] . ' ' . $usuario['apellido'];
-
-                // DETECCIÓN AUTOMÁTICA DEL ROL DESDE BASE DE DATOS
-                if ($esOrganizador) {
-                    $_SESSION['usuario_rol'] = 'organizador';
-                } elseif ($esCliente) {
-                    $_SESSION['usuario_rol'] = 'cliente';
+                
+                // VERIFICACIÓN DEL ROL SELECCIONADO
+                if ($rolElegido === 'organizador') {
+                    $tieneRol = $this->organizadorModel->existe($usuario['dni']);
                 } else {
-                    setFlash('error', 'Tu cuenta no tiene un tipo de rol asignado.');
+                    $tieneRol = $this->clienteModel->existe($usuario['dni']);
+                }
+
+                // Si no tiene ese rol en la base de datos, rechazamos el login
+                if (!$tieneRol) {
+                    setFlash('error', 'Tu cuenta no está registrada con el rol de ' . ucfirst($rolElegido) . '.');
                     redirect('auth/login');
                     return;
                 }
 
+                // Guardamos los datos en la sesión
+                $_SESSION['usuario_dni']    = $usuario['dni'];
+                $_SESSION['usuario_nombre'] = $usuario['nombre'] . ' ' . $usuario['apellido'];
+                $_SESSION['usuario_rol']    = $rolElegido;
+
                 setFlash('success', 'Bienvenido, ' . $usuario['nombre'] . '.');
-                redirect($_SESSION['usuario_rol'] === 'organizador' ? 'organizador/panel' : 'evento/catalogo');
+                redirect($rolElegido === 'organizador' ? 'organizador/panel' : 'evento/catalogo');
+                return;
             }
 
             setFlash('error', 'Correo o contraseña incorrectos.');
