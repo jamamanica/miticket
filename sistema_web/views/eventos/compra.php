@@ -1,16 +1,16 @@
 <?php require __DIR__ . '/../layout/header.php'; ?>
 
-<div class="form-card" style="max-width: 800px; margin: 30px auto;">
-    <h2>Comprar Entradas para: <?= htmlspecialchars($evento['nombre']) ?></h2>
+<div class="form-card" style="max-width: 800px; margin: 30px auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+    <h2>Comprar Entradas para: <?= htmlspecialchars($evento['nombre'] ?? $evento['titulo'] ?? '') ?></h2>
     <p><strong>Fecha y Hora:</strong> <?= htmlspecialchars($evento['fecha']) ?> - <?= htmlspecialchars($evento['hora']) ?></p>
 
     <!-- Formulario que enviará la compra al controlador correspondiente -->
     <form method="POST" action="<?= BASE_URL ?>/index.php?route=compra/procesar">
-        <input type="hidden" name="id_evento" value="<?= $evento['id_evento'] ?>">
+        <input type="hidden" name="id_evento" value="<?= (int) $evento['id_evento'] ?>">
         
         <!-- 1. Selección de Zona -->
-        <label for="id_zona">Selecciona tu Zona:</label>
-        <select name="id_zona" id="id_zona" onchange="cargarMapaAsientos()" required>
+        <label for="id_zona" style="display:block; font-weight:bold; margin-bottom: 8px;">Selecciona tu Zona:</label>
+        <select name="id_zona" id="id_zona" onchange="cargarMapaAsientos()" required style="width:100%; padding:10px; border-radius:4px; border:1px solid #ccc; margin-bottom: 15px;">
             <option value="">-- Elige una zona --</option>
             <?php foreach ($zonas as $zona): ?>
                 <option value="<?= $zona['id_zona'] ?>"><?= htmlspecialchars($zona['nombre_zona']) ?> (S/. <?= number_format($zona['precio'], 2) ?>)</option>
@@ -37,17 +37,19 @@
             <div style="text-align: center; font-weight: bold; margin-bottom: 15px; background: #eaeaea; padding: 5px; border-radius: 4px; letter-spacing: 2px;">ESCENARIO / PANTALLA</div>
 
             <!-- Aquí JS pintará dinámicamente los botones de los asientos -->
-            <div id="mapa_grid" style="display: grid; gap: 10px; justify-content: center; overflow-x: auto; padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px dashed #ccc;"></div>
+            <div style="overflow-x: auto; max-width: 100%; padding: 10px; background: #f9f9f9; border-radius: 8px; border: 1px dashed #ccc;">
+                <div id="mapa_grid" style="display: grid; gap: 10px; justify-content: center; margin: 0 auto;"></div>
+            </div>
 
             <!-- Campo oculto donde guardaremos el id del asiento seleccionado para enviarlo al servidor -->
             <input type="hidden" name="id_asiento" id="asiento_seleccionado_id" required>
             
-            <div id="info_seleccion" style="margin-top: 15px; text-align: center; display: none;">
-                <p style="font-size: 1.1em;">Has seleccionado el asiento: <strong id="asiento_nombre" style="color: #ff9800;">Ninguno</strong></p>
+            <div id="info_seleccion" style="margin-top: 15px; text-align: center; display: none; background: #fff3cd; padding: 10px; border-radius: 4px;">
+                <p style="font-size: 1.1em; margin: 0;">Has seleccionado el asiento: <strong id="asiento_nombre" style="color: #d39e00;">Ninguno</strong></p>
             </div>
         </div>
 
-        <button type="submit" id="btn_continuar" class="btn" style="margin-top: 20px; width: 100%; display: none;">Continuar con el Pago</button>
+        <button type="submit" id="btn_continuar" class="btn" style="margin-top: 20px; width: 100%; display: none; font-weight: bold; padding: 12px;">Continuar con el Pago</button>
     </form>
 </div>
 
@@ -114,16 +116,13 @@ function cargarMapaAsientos() {
         .then(asientos => {
             mapaGrid.innerHTML = "";
             if (asientos.length === 0) {
-                mapaGrid.innerHTML = "<p>Esta zona no tiene asientos configurados físicamente.</p>";
+                mapaGrid.innerHTML = "<p style='padding: 15px;'>Esta zona no tiene asientos configurados físicamente.</p>";
                 seccionAsientos.style.display = "block";
                 return;
             }
 
             // Calculamos cuántas filas y columnas tiene la zona para configurar el CSS Grid automáticamente
-            let maxFilaNum = 1;
             let maxColumna = 1;
-
-            // Mapeamos letras de filas a números para el grid dinámico (A=1, B=2, etc.)
             const filaAMapa = {};
             let indiceFila = 1;
 
@@ -131,9 +130,11 @@ function cargarMapaAsientos() {
                 if (!filaAMapa[asiento.fila]) {
                     filaAMapa[asiento.fila] = indiceFila++;
                 }
-                if (asiento.columna > maxColumna) maxColumna = parseInt(asiento.columna);
+                if (parseInt(asiento.columna) > maxColumna) {
+                    maxColumna = parseInt(asiento.columna);
+                }
             });
-            maxFilaNum = indiceFila - 1;
+            const maxFilaNum = indiceFila - 1;
 
             // Definimos dinámicamente las columnas y filas de CSS Grid en el contenedor
             mapaGrid.style.gridTemplateColumns = `repeat(${maxColumna}, 40px)`;
@@ -178,7 +179,7 @@ function cargarMapaAsientos() {
         })
         .catch(error => {
             console.error("Error al cargar los asientos: ", error);
-            mapaGrid.innerHTML = "<p>Ocurrió un error al cargar el mapa de asientos.</p>";
+            mapaGrid.innerHTML = "<p style='color:red; padding:15px;'>Ocurrió un error al cargar el mapa de asientos.</p>";
         });
 }
 </script>

@@ -41,6 +41,33 @@ class EventoController
 
         require __DIR__ . '/../views/eventos/detalle.php';
     }
+
+    /** Renders el formulario interactivo de compra de asientos */
+    public function comprar(): void
+    {
+        // Aseguramos sesión activa de cliente
+        if (!isset($_SESSION['usuario_dni'])) {
+            setFlash('error', 'Debes iniciar sesión para comprar tus entradas.');
+            redirect('auth/login');
+            return;
+        }
+
+        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $evento = $this->eventoModel->buscarPorId($id);
+
+        if (!$evento || $evento['estado'] !== 'PUBLICADO') {
+            setFlash('error', 'El evento no está disponible para la venta.');
+            redirect('evento/catalogo');
+            return;
+        }
+
+        $zonas = $this->zonaModel->listarPorEvento($id);
+
+        // Renderizamos tu vista compra.php
+        require __DIR__ . '/../views/eventos/compra.php';
+    }
+
+    /** Endpoint AJAX para obtener los asientos estructurados de una zona */
     public function obtenerAsientos(): void
     {
         header('Content-Type: application/json');
