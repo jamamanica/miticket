@@ -31,7 +31,7 @@ class CompraController
         $this->eventoModel     = new Evento();
     }
 
-    /** Agrega una zona/cantidad al carrito en sesión */
+    /** Agrega una zona/cantidad al carrito en sesión mediante AJAX o Post convencional */
     public function agregar(): void
     {
         requireCliente();
@@ -40,29 +40,60 @@ class CompraController
         $cantidad = (int) ($_POST['cantidad'] ?? 0);
         $idEvento = (int) ($_POST['id_evento'] ?? 0);
 
+        // Detectar si la solicitud es por AJAX
+        $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') 
+                  || (isset($_POST['ajax']) && $_POST['ajax'] == 1);
+
         $zona = $this->zonaModel->buscarPorId($idZona);
 
         if (!$zona || $cantidad < 1) {
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Selección inválida.']);
+                exit;
+            }
             setFlash('error', 'Selección inválida.');
             redirect('evento/detalle&id=' . $idEvento);
         }
 
         if ($cantidad > $zona['stock']) {
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'No hay suficiente stock disponible en esa zona.']);
+                exit;
+            }
             setFlash('error', 'No hay suficiente stock disponible en esa zona.');
             redirect('evento/detalle&id=' . $idEvento);
         }
 
         if (!isset($_SESSION['carrito']) || ($_SESSION['carrito']['id_evento'] ?? null) !== $idEvento) {
-            // Si cambia de evento, se reinicia el carrito
+            // Si cambia de evento o inicia nuevo, se vacía e inicia el carrito
             $_SESSION['carrito'] = ['id_evento' => $idEvento, 'items' => []];
         }
 
+        // Si ya tenía esta zona en el carrito, sumamos cantidades o actualizamos
         $_SESSION['carrito']['items'][$idZona] = [
-            'id_zona'    => $idZona,
-            'nombre_zona'=> $zona['nombre_zona'],
-            'precio'     => (float) $zona['precio'],
-            'cantidad'   => $cantidad,
+            'id_zona'     => $idZona,
+            'nombre_zona' => $zona['nombre_zona'],
+            'precio'      => (float) $zona['precio'],
+            'cantidad'    => $cantidad,
         ];
+
+        // Calcular cantidad total de productos en el carrito para retornar un feedback
+        $totalItems = 0;
+        foreach ($_SESSION['carrito']['items'] as $item) {
+            $totalItems += $item['cantidad'];
+        }
+
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'message' => "¡Has agregado {$cantidad} entrada(s) de la zona " . e($zona['nombre_zona']) . " con éxito!",
+                'totalItems' => $totalItems
+            ]);
+            exit;
+        }
 
         setFlash('success', 'Entradas agregadas al carrito.');
         redirect('compra/carrito');
@@ -114,6 +145,9 @@ class CompraController
             redirect('compra/carrito');
         }
 
+        // Recuperar los IDs de los asientos seleccionados desde el carrito interactivo
+        $asientosSeleccionados = $_POST['asientos_seleccionados'] ?? [];
+
         $dniCliente = $_SESSION['usuario_dni'];
         $db = Database::getConnection();
 
@@ -127,22 +161,33 @@ class CompraController
             $idCompra = $this->compraModel->crear($dniCliente, $total);
 
             foreach ($carrito['items'] as $item) {
-                // Bloquear stock de forma segura
-                $ok = $this->zonaModel->descontarStock($item['id_zona'], $item['cantidad']);
+                $idZona = (int) $item['id_zona'];
+                
+                // Extraer y procesar los asientos elegidos por el usuario para esta zona
+                $asientosElegidosRaw = $asientosSeleccionados[$idZona] ?? '';
+                $asientosElegidos = !empty($asientosElegidosRaw) ? explode(',', $asientosElegidosRaw) : [];
+
+                if (count($asientosElegidos) !== (int) $item['cantidad']) {
+                    throw new Exception('No coinciden los asientos seleccionados con la cantidad requerida para la zona "' . $item['nombre_zona'] . '".');
+                }
+
+                // Descontar stock general
+                $ok = $this->zonaModel->descontarStock($idZona, $item['cantidad']);
                 if (!$ok) {
                     throw new Exception('No hay stock suficiente para la zona "' . $item['nombre_zona'] . '".');
                 }
 
-                $this->detalleModel->crear($idCompra, $item['id_zona'], $item['cantidad'], $item['precio']);
+                $this->detalleModel->crear($idCompra, $idZona, $item['cantidad'], $item['precio']);
 
-                $asientos = $this->asientoModel->obtenerDisponibles($item['id_zona'], $item['cantidad']);
-                if (count($asientos) < $item['cantidad']) {
-                    throw new Exception('No hay asientos disponibles suficientes en la zona "' . $item['nombre_zona'] . '".');
-                }
-
-                foreach ($asientos as $idAsiento) {
+                // Validar y ocupar cada uno de los asientos seleccionados
+                foreach ($asientosElegidos as $idAsiento) {
+                    $idAsiento = (int)$idAsiento;
+                    
+                    // Marcar físicamente el asiento como reservado/vendido
                     $this->asientoModel->marcarVendido($idAsiento);
-                    $this->ticketModel->crear($idCompra, $item['id_zona'], $idAsiento);
+                    
+                    // Generar el ticket físico asociado a la butaca exacta
+                    $this->ticketModel->crear($idCompra, $idZona, $idAsiento);
                 }
             }
 
