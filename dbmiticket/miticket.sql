@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS DBMITICKET;
 CREATE DATABASE DBMITICKET;
 USE DBMITICKET;
 
@@ -84,12 +85,15 @@ CREATE TABLE zona (
     CONSTRAINT fk_zona_evento FOREIGN KEY (id_evento) REFERENCES evento(id_evento) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+-- MODIFICADA: Ahora soporta fila y columna para pintar el mapa interactivo
 CREATE TABLE asiento (
     id_asiento INT AUTO_INCREMENT PRIMARY KEY,
     numero_asiento VARCHAR(20) NOT NULL,
+    fila CHAR(2) NOT NULL,
+    columna INT NOT NULL,
     estado ENUM('DISPONIBLE','RESERVADO','VENDIDO') DEFAULT 'DISPONIBLE',
     id_zona INT NOT NULL,
-    CONSTRAINT uq_asiento UNIQUE(numero_asiento,id_zona),
+    CONSTRAINT uq_asiento UNIQUE(numero_asiento, id_zona),
     CONSTRAINT fk_asiento_zona FOREIGN KEY (id_zona) REFERENCES zona(id_zona) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -118,6 +122,7 @@ CREATE TABLE pago (
     CONSTRAINT fk_pago_metodo FOREIGN KEY (id_metodo) REFERENCES metodo_pago(id_metodo) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
+-- MODIFICADA: Guardamos qué asiento se compró en cada detalle para actualizar su estado fácilmente
 CREATE TABLE detalle_compra (
     id_detalle INT AUTO_INCREMENT PRIMARY KEY,
     cantidad INT NOT NULL,
@@ -125,8 +130,10 @@ CREATE TABLE detalle_compra (
     subtotal DECIMAL(10,2) NOT NULL,
     id_compra INT NOT NULL,
     id_zona INT NOT NULL,
+    id_asiento INT DEFAULT NULL,
     CONSTRAINT fk_detalle_compra FOREIGN KEY (id_compra) REFERENCES compra(id_compra) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_detalle_zona FOREIGN KEY (id_zona) REFERENCES zona(id_zona) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT fk_detalle_zona FOREIGN KEY (id_zona) REFERENCES zona(id_zona) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_detalle_asiento FOREIGN KEY (id_asiento) REFERENCES asiento(id_asiento) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE TABLE ticket (

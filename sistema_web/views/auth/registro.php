@@ -7,7 +7,7 @@
         <label>Tipo de cuenta</label>
         <select name="tipo_cuenta" id="tipo_cuenta" onchange="toggleOrganizador()">
             <option value="cliente">Cliente (comprar entradas)</option>
-            <option value="organizador">Organizador (crear y vender eventos)</option>
+            <option value="organizador">Organizador (crear eventos)</option>
         </select>
 
         <label>DNI (8 dígitos)</label>

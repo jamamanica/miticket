@@ -41,4 +41,24 @@ class EventoController
 
         require __DIR__ . '/../views/eventos/detalle.php';
     }
+    public function obtenerAsientos(): void
+    {
+        header('Content-Type: application/json');
+        
+        $idZona = (int)($_GET['id_zona'] ?? 0);
+        if ($idZona <= 0) {
+            echo json_encode([]);
+            exit;
+        }
+
+        $db = Database::getConnection();
+        
+        // Consultamos todos los asientos de la zona ordenados por fila y columna
+        $stmt = $db->prepare("SELECT id_asiento, numero_asiento, fila, columna, estado FROM asiento WHERE id_zona = ? ORDER BY fila ASC, columna ASC");
+        $stmt->execute([$idZona]);
+        $asientos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode($asientos);
+        exit;
+    }
 }
