@@ -63,6 +63,7 @@ class OrganizadorController
             if (!empty($errores)) {
                 setFlash('error', implode(' ', $errores));
                 redirect('organizador/crearEvento');
+                return;
             }
 
             if ($nuevoLugarNombre !== '') {
@@ -86,6 +87,7 @@ class OrganizadorController
 
             setFlash('success', 'Evento creado en estado BORRADOR. Ahora agrega zonas antes de publicarlo.');
             redirect('organizador/zonas&id=' . $idEvento);
+            return;
         }
 
         $categorias = $this->categoriaModel->listarTodas();
@@ -102,6 +104,7 @@ class OrganizadorController
         if (!$evento) {
             setFlash('error', 'Evento no encontrado.');
             redirect('organizador/panel');
+            return;
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -115,6 +118,7 @@ class OrganizadorController
             if ($nombre === '' || $fecha === '' || $hora === '' || $idCategoria < 1 || $idLugar < 1) {
                 setFlash('error', 'Todos los campos son obligatorios.');
                 redirect('organizador/editarEvento&id=' . $id);
+                return;
             }
 
             $this->eventoModel->actualizar($id, [
@@ -128,6 +132,7 @@ class OrganizadorController
 
             setFlash('success', 'Evento actualizado correctamente.');
             redirect('organizador/panel');
+            return;
         }
 
         $categorias = $this->categoriaModel->listarTodas();
@@ -135,7 +140,7 @@ class OrganizadorController
         require __DIR__ . '/../views/organizador/editar_evento.php';
     }
 
-    /** Gestión de zonas de un evento: listar + agregar (genera asientos automáticamente) */
+    /** Gestión de zonas de un evento: listar + agregar (genera asientos físicos en filas y columnas) */
     public function zonas(): void
     {
         requireOrganizador();
@@ -145,34 +150,57 @@ class OrganizadorController
         if (!$evento) {
             setFlash('error', 'Evento no encontrado.');
             redirect('organizador/panel');
+            return;
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nombreZona = trim($_POST['nombre_zona'] ?? '');
             $precio     = (float) ($_POST['precio'] ?? 0);
-            $capacidad  = (int) ($_POST['capacidad'] ?? 0);
+            $filas      = (int) ($_POST['filas'] ?? 0);
+            $columnas   = (int) ($_POST['columnas'] ?? 0);
+            $capacidad  = $filas * $columnas;
 
-            if ($nombreZona === '' || $precio <= 0 || $capacidad < 1) {
-                setFlash('error', 'Completa correctamente nombre, precio y capacidad de la zona.');
+            if ($nombreZona === '' || $precio <= 0 || $filas < 1 || $columnas < 1) {
+                setFlash('error', 'Completa correctamente el nombre, precio, cantidad de filas y asientos.');
                 redirect('organizador/zonas&id=' . $idEvento);
+                return;
             }
 
             $db = Database::getConnection();
             $db->beginTransaction();
             try {
+                // 1. Insertamos la zona en la base de datos
                 $idZona = $this->zonaModel->crear($idEvento, $nombreZona, $precio, $capacidad);
-                // Genera automáticamente un asiento por cada cupo de la zona
-                $prefijo = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $nombreZona) ?: 'Z', 0, 3));
-                $this->asientoModel->generarParaZona($idZona, $capacidad, $prefijo);
+                
+                // 2. Generación programada de Asientos estructurados
+                $stmtAsiento = $db->prepare("INSERT INTO asiento (numero_asiento, fila, columna, estado, id_zona) VALUES (?, ?, ?, 'DISPONIBLE', ?)");
+                
+                $letras = range('A', 'Z');
+
+                for ($f = 0; $f < $filas; $f++) {
+                    // Si excede la fila 26 (Z), genera AA, BB, etc.
+                    $letraFila = $letras[$f] ?? 'Z' . ($f - 25);
+
+                    for ($c = 1; $c <= $columnas; $c++) {
+                        $numeroAsiento = $letraFila . "-" . $c;
+                        $stmtAsiento->execute([
+                            $numeroAsiento,
+                            $letraFila,
+                            $c,
+                            $idZona
+                        ]);
+                    }
+                }
+
                 $db->commit();
+                setFlash('success', 'Zona "' . $nombreZona . '" creada con exitosamente. Se generaron ' . $capacidad . ' asientos (' . $filas . ' filas x ' . $columnas . ' columnas).');
             } catch (Exception $e) {
                 $db->rollBack();
-                setFlash('error', 'No se pudo crear la zona: ' . $e->getMessage());
-                redirect('organizador/zonas&id=' . $idEvento);
+                setFlash('error', 'No se pudo crear la zona o sus asientos: ' . $e->getMessage());
             }
 
-            setFlash('success', 'Zona "' . $nombreZona . '" creada con ' . $capacidad . ' asientos disponibles.');
             redirect('organizador/zonas&id=' . $idEvento);
+            return;
         }
 
         $zonas = $this->zonaModel->listarPorEvento($idEvento);
@@ -188,12 +216,14 @@ class OrganizadorController
         if (!$evento) {
             setFlash('error', 'Evento no encontrado.');
             redirect('organizador/panel');
+            return;
         }
 
         $zonas = $this->zonaModel->listarPorEvento($id);
         if (empty($zonas)) {
             setFlash('error', 'Debes agregar al menos una zona antes de publicar el evento.');
             redirect('organizador/zonas&id=' . $id);
+            return;
         }
 
         $this->eventoModel->cambiarEstado($id, 'PUBLICADO');
@@ -210,6 +240,7 @@ class OrganizadorController
         if (!$evento) {
             setFlash('error', 'Evento no encontrado.');
             redirect('organizador/panel');
+            return;
         }
 
         $this->eventoModel->cambiarEstado($id, 'CANCELADO');
